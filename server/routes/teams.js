@@ -21,6 +21,9 @@ router.get('/', authenticateToken, async (req, res) => {
 
 router.get('/:id', authenticateToken, async (req, res) => {
     const teamId = parseInt(req.params.id, 10);
+    if (isNaN(teamId)) {
+      return res.status(400).json({ error: 'Invalid team ID' });
+    }
 
     try {
       const result = await pool.query('SELECT * FROM teams WHERE id = $1', [teamId]);
@@ -37,12 +40,15 @@ router.get('/:id', authenticateToken, async (req, res) => {
   //Creating a new team
 
   router.post('/', authenticateToken, async (req, res) => {
-    const { name, abbreviation, logo_url, founded_year, stadium } = req.body;
+    const { name, abbreviation, founded_year, stadium } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Team name is required' });
+    }
 
     try {
       const result = await pool.query(
-        'INSERT INTO teams (name, abbreviation, logo_url, founded_year, stadium) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [name, abbreviation, logo_url, founded_year, stadium]
+        'INSERT INTO teams (name, abbreviation, founded_year, stadium) VALUES ($1, $2, $3, $4) RETURNING *',
+        [name, abbreviation, founded_year, stadium]
       );
       res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -55,12 +61,16 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
 router.put('/:id', authenticateToken, async (req, res) => {
     const teamId = parseInt(req.params.id, 10);
-    const { name, abbreviation, logo_url, founded_year, stadium } = req.body;
+    if (isNaN(teamId)) {
+      return res.status(400).json({ error: 'Invalid team ID' });
+    }
+
+    const { name, abbreviation, founded_year, stadium } = req.body;
 
     try {
       const result = await pool.query(
-        'UPDATE teams SET name = $1, abbreviation = $2, logo_url = $3, founded_year = $4, stadium = $5 WHERE id = $6 RETURNING *',
-        [name, abbreviation, logo_url, founded_year, stadium, teamId]
+        'UPDATE teams SET name = $1, abbreviation = $2, founded_year = $3, stadium = $4 WHERE id = $5 RETURNING *',
+        [name, abbreviation, founded_year, stadium, teamId]
       );
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Team not found' });
@@ -76,6 +86,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
 router.delete('/:id', authenticateToken, async (req, res) => {
     const teamId = parseInt(req.params.id, 10);
+    if (isNaN(teamId)) {
+      return res.status(400).json({ error: 'Invalid team ID' });
+    }
 
     try {
       const result = await pool.query('DELETE FROM teams WHERE id = $1 RETURNING *', [teamId]);

@@ -20,6 +20,9 @@ router.get('/', authenticateToken, async (req, res) => {
 
 router.get('/:id', authenticateToken, async (req, res) => {
     const matchId = parseInt(req.params.id, 10);
+    if(isNaN(matchId)) {
+      return res.status(400).json({ error: 'Invalid match ID'});
+    }
 
     try {
       const result = await pool.query('SELECT * FROM matches WHERE id = $1', [matchId]);
@@ -36,12 +39,15 @@ router.get('/:id', authenticateToken, async (req, res) => {
 //Creating new match 
 
 router.post('/', authenticateToken, async (req, res) => {
-    const { match_date, home_team_id, away_team_id, home_score, away_score, season, venue } = req.body;
+    const { match_date, home_team_id, away_team_id, home_score, away_score, venue } = req.body;
+    if (!match_date || !home_team_id || !away_team_id) {
+      return res.status(400).json({ error: 'match_date, home_team_id, and away_team_id are required' });
+    }
 
     try {
       const result = await pool.query(
-        'INSERT INTO matches (match_date, home_team_id, away_team_id, home_score, away_score, season, venue) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [match_date, home_team_id, away_team_id, home_score, away_score, season, venue]
+        'INSERT INTO matches (match_date, home_team_id, away_team_id, home_score, away_score, venue) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [match_date, home_team_id, away_team_id, home_score, away_score, venue]
       );
       res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -54,12 +60,16 @@ router.post('/', authenticateToken, async (req, res) => {
 
 router.put('/:id', authenticateToken, async (req, res) => {
     const matchId = parseInt(req.params.id, 10);
-    const { match_date, home_team_id, away_team_id, home_score, away_score, season, venue } = req.body;
+    if (isNaN(matchId)) {
+      return res.status(400).json({ error: 'Invalid match ID' });
+    }
+
+    const { match_date, home_team_id, away_team_id, home_score, away_score, venue } = req.body;
 
     try {
       const result = await pool.query(
-        'UPDATE matches SET match_date = $1, home_team_id = $2, away_team_id = $3, home_score = $4, away_score = $5, season = $6, venue = $7 WHERE id = $8 RETURNING *',
-        [match_date, home_team_id, away_team_id, home_score, away_score, season, venue, matchId]
+        'UPDATE matches SET match_date = $1, home_team_id = $2, away_team_id = $3, home_score = $4, away_score = $5, venue = $6 WHERE id = $7 RETURNING *',
+        [match_date, home_team_id, away_team_id, home_score, away_score, venue, matchId]
       );
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Match not found' });
@@ -75,6 +85,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
 router.delete('/:id', authenticateToken, async (req, res) => {
     const matchId = parseInt(req.params.id, 10);
+    if (isNaN(matchId)) {
+      return res.status(400).json({ error: 'Invalid match ID' });
+    }
+    
     try {
       const result = await pool.query('DELETE FROM matches WHERE id = $1 RETURNING *', [matchId]);
       if (result.rows.length === 0) {

@@ -20,6 +20,9 @@ router.get('/', authenticateToken, async (req, res) => {
 
 router.get('/:id', authenticateToken, async (req, res) => {
     const playerId = parseInt(req.params.id, 10);
+    if (isNaN(playerId)) {
+      return res.status(400).json({ error: 'Invalid player ID' });
+    }
 
     try {
       const result = await pool.query('SELECT * FROM players WHERE id = $1', [playerId]);
@@ -37,6 +40,9 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
 router.post('/', authenticateToken, async (req, res) => {
     const { name, team_id, position, date_of_birth, nationality } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Player name is required' });
+    }
 
     try {
       const result = await pool.query(
@@ -54,6 +60,10 @@ router.post('/', authenticateToken, async (req, res) => {
 
 router.put('/:id', authenticateToken, async (req, res) => {
     const playerId = parseInt(req.params.id, 10);
+    if (isNaN(playerId)) {
+      return res.status(400).json({ error: 'Invalid player ID' });
+    }
+
     const { name, team_id, position, date_of_birth, nationality } = req.body;
 
     try {
@@ -75,6 +85,9 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
 router.delete('/:id', authenticateToken, async (req, res) => {
     const playerId = parseInt(req.params.id, 10);
+    if (isNaN(playerId)) {
+      return res.status(400).json({ error: 'Invalid player ID' });
+    }
 
     try {
       const result = await pool.query('DELETE FROM players WHERE id = $1 RETURNING *', [playerId]);
