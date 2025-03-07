@@ -9,7 +9,7 @@ const secretKey = process.env.JWT_SECRET;
 
 //Registration
 
-router.post('/registration', async (req, res) => {
+router.post('/register', async (req, res) => {
   const { username, password } = req.body;
 
   if(!username || !password) {
