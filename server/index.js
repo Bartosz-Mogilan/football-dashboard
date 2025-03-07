@@ -33,7 +33,7 @@ app.use('/auth', authRouter);
 
 //Starting server
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  app.listen(PORT, "localhost", () => {
     console.log(`Server running on port ${PORT}`);
   });
 }
